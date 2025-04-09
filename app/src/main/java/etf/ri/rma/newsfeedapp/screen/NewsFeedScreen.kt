@@ -31,22 +31,22 @@ class NewsFeedScreen {
     fun NewsFeedScreen() {
         val allNews = remember { NewsData.getAllNews() }
         var selectedCategory by remember { mutableStateOf<String?>(null) }
-
-        Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-            CategoryFilter(selectedCategory = selectedCategory, onCategorySelected = { category ->
+        Column(
+            modifier = Modifier.fillMaxSize().padding(16.dp)
+        ) {
+            CategoryFilter(
+                selectedCategory = selectedCategory,
+                onCategorySelected = { category ->
                 selectedCategory = if (selectedCategory == category) null else category
             })
-
             val filteredItems = allNews.filter {
                 selectedCategory == null || it.category == selectedCategory
             }
-
-            val message = if (selectedCategory != null)
-                "Nema pronađenih vijesti u kategoriji $selectedCategory."
-            else
-                "Nema dostupnih vijesti."
-
-            NewsList(newsItems = filteredItems.ifEmpty { emptyList() })
+            val message = if (selectedCategory != null) "Nema pronađenih vijesti u kategoriji $selectedCategory."
+            else "Nema dostupnih vijesti."
+            NewsList(
+                newsItems = filteredItems.ifEmpty { emptyList() }
+            )
         }
     }
 
@@ -54,7 +54,6 @@ class NewsFeedScreen {
     @Composable
     fun CategoryFilter(selectedCategory: String?, onCategorySelected: (String?) -> Unit) {
         val categories = listOf("Sve", "Politika", "Sport", "Nauka/tehnologija", "Biznis")
-
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -69,4 +68,12 @@ class NewsFeedScreen {
         }
     }
 }
+
+
+
+
+
+
+
+
 

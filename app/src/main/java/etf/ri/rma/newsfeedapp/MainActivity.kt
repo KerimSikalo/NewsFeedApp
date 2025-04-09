@@ -13,7 +13,6 @@ import etf.ri.rma.newsfeedapp.ui.theme.NewsFeedAppTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContent {
             NewsFeedAppTheme {
                 Surface(

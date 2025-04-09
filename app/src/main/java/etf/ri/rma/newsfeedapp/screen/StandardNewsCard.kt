@@ -30,7 +30,6 @@ import etf.ri.rma.newsfeedapp.model.NewsItem
 fun StandardNewsCard(newsItem: NewsItem) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.padding(16.dp)) {
-
             Image(
                 painter = painterResource(id = R.drawable.news),
                 contentDescription = null,
@@ -39,10 +38,12 @@ fun StandardNewsCard(newsItem: NewsItem) {
                     .clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop
             )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
+            Spacer(
+                modifier = Modifier.width(8.dp)
+            )
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(
                     text = newsItem.title,
                     style = MaterialTheme.typography.titleSmall,
@@ -63,3 +64,12 @@ fun StandardNewsCard(newsItem: NewsItem) {
         }
     }
 }
+
+
+
+
+
+
+
+
+
