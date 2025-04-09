@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
@@ -40,52 +41,25 @@ class NewsFeedScreen {
                 selectedCategory == null || it.category == selectedCategory
             }
 
-            LazyColumn(modifier = Modifier
-                .testTag("news_list")
-                .padding(8.dp)
-                .fillMaxSize()) {
+            val message = if (selectedCategory != null)
+                "Nema pronađenih vijesti u kategoriji $selectedCategory."
+            else
+                "Nema dostupnih vijesti."
 
-                if (filteredItems.isEmpty()) {
-                    item {
-                        val message = if (selectedCategory != null)
-                            "Nema pronađenih vijesti u kategoriji $selectedCategory."
-                        else
-                            "Nema dostupnih vijesti."
-                        MessageCard(text = message)
-                    }
-                } else {
-                    items(filteredItems, key = { it.id }) { item ->
-                        if (item.isFeatured) {
-                            FeaturedNewsCard(newsItem = item)
-                        } else {
-                            StandardNewsCard(newsItem = item)
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                }
-            }
+            NewsList(newsItems = filteredItems.ifEmpty { emptyList() })
         }
     }
 
 
     @Composable
     fun CategoryFilter(selectedCategory: String?, onCategorySelected: (String?) -> Unit) {
-        val categories = listOf("Sve", "Politika", "Sport", "Nauka/tehnologija", "Biznis", "Zdravlje")
+        val categories = listOf("Sve", "Politika", "Sport", "Nauka/tehnologija", "Biznis")
 
-        Row(
+        LazyRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            categories.forEach { category ->
-
-                val chipIds = mapOf(
-                    "Sve" to "filter_chip_all",
-                    "Politika" to "filter_chip_pol",
-                    "Sport" to "filter_chip_spo",
-                    "Nauka/tehnologija" to "filter_chip_sci",
-                    "Biznis" to "filter_chip_biz",
-                )
-
+            items(categories) { category ->
                 FilterChip(
                     selected = selectedCategory == category || (selectedCategory == null && category == "Sve"),
                     onClick = { onCategorySelected(if (category == "Sve") null else category) },

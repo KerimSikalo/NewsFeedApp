@@ -20,7 +20,6 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // Pravimo instancu klase i zovemo metodu unutar nje
                     val screen = NewsFeedScreen()
                     screen.NewsFeedScreen()
                 }
