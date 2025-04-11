@@ -13,21 +13,13 @@ import etf.ri.rma.newsfeedapp.model.NewsItem
 
 @Composable
 fun NewsList(newsItems: List<NewsItem>) {
-    if (newsItems.isEmpty()) {
-        MessageCard(text = "Nema pronađenih vijesti.")
-    } else {
-        LazyColumn(
-            modifier = Modifier.testTag("news_list").padding(8.dp)
-        ) {
-            items(
-                newsItems, key = { it.id }
-            ) { item ->
-                if (item.isFeatured) FeaturedNewsCard(newsItem = item)
-                 else StandardNewsCard(newsItem = item)
-                Spacer(
-                    modifier = Modifier.height(8.dp)
-                )
-            }
+    LazyColumn(
+        modifier = Modifier.testTag("news_list").padding(8.dp)
+    ) {
+        items(newsItems, key = { it.id }) { item ->
+            if (item.isFeatured) FeaturedNewsCard(newsItem = item)
+            else StandardNewsCard(newsItem = item)
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }

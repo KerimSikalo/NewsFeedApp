@@ -33,9 +33,7 @@ fun StandardNewsCard(newsItem: NewsItem) {
             Image(
                 painter = painterResource(id = R.drawable.news),
                 contentDescription = null,
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(8.dp)),
+                modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop
             )
             Spacer(
