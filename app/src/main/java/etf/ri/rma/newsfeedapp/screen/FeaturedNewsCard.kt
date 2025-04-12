@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -22,11 +23,15 @@ import etf.ri.rma.newsfeedapp.model.NewsItem
 
 @Composable
 fun FeaturedNewsCard(newsItem: NewsItem) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp)) {
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp)
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.news),
-                contentDescription = null,
+                contentDescription = "image",
                 modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop
             )
@@ -35,18 +40,21 @@ fun FeaturedNewsCard(newsItem: NewsItem) {
             )
             Text(
                 text = newsItem.title,
+                modifier = Modifier.testTag("news_title"),
                 style = MaterialTheme.typography.titleLarge,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = newsItem.snippet,
+                modifier = Modifier.testTag("news_snippet"),
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = "${newsItem.source} • ${newsItem.publishedDate}",
+                modifier = Modifier.testTag("news_source"),
                 style = MaterialTheme.typography.labelSmall
             )
         }

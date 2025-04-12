@@ -12,12 +12,12 @@ object NewsData {
             }
             NewsItem(
                 id = index.toString(),
-                title = "Naslov",
-                snippet = "Opis vijesti.",
+                title = "Vijest $index: naslov specifičan za $index",
+                snippet = "Opis $index: detalji za vijest $index...",
                 imageUrl = null,
                 category = category,
                 isFeatured = index % 5 == 0,
-                source = "Izvor",
+                source = "Izvor: $index",
                 publishedDate = "${(index % 30) + 1}-01-2025"
             )
         }

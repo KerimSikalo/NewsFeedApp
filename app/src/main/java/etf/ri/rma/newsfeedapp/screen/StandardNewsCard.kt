@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -32,7 +33,7 @@ fun StandardNewsCard(newsItem: NewsItem) {
         Row(modifier = Modifier.padding(16.dp)) {
             Image(
                 painter = painterResource(id = R.drawable.news),
-                contentDescription = null,
+                contentDescription = "image",
                 modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop
             )
@@ -44,18 +45,21 @@ fun StandardNewsCard(newsItem: NewsItem) {
             ) {
                 Text(
                     text = newsItem.title,
+                    modifier = Modifier.testTag("news_title"),
                     style = MaterialTheme.typography.titleSmall,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = newsItem.snippet,
+                    modifier = Modifier.testTag("news_snippet"),
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = "${newsItem.source} • ${newsItem.publishedDate}",
+                    modifier = Modifier.testTag("news_source"),
                     style = MaterialTheme.typography.labelSmall
                 )
             }

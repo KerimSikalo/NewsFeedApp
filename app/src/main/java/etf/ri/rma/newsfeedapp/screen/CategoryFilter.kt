@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -31,7 +32,7 @@ fun CategoryFilter(selectedCategory: String?, onCategorySelected: (String?) -> U
         "Nauka/tehnologija" to "filter_chip_sci"
     )
     val extraCategories = listOf(
-        "Biznis" to "filter_chip_biz"
+        "Biznis" to "filter_chip_none"
     )
     Column(
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
@@ -45,6 +46,7 @@ fun CategoryFilter(selectedCategory: String?, onCategorySelected: (String?) -> U
                 val isSelected = selectedCategory == category || (selectedCategory == null && category == "Sve")
                 FilterChip(
                     modifier = Modifier.semantics { contentDescription = tag }
+                        .testTag(tag)
                         .widthIn(
                             max = if (category == "Nauka/tehnologija") 120.dp
                             else Dp.Unspecified
@@ -79,7 +81,8 @@ fun CategoryFilter(selectedCategory: String?, onCategorySelected: (String?) -> U
             extraCategories.forEach { (category, tag) ->
                 val isSelected = selectedCategory == category
                 FilterChip(
-                    modifier = Modifier.semantics { contentDescription = tag },
+                    modifier = Modifier.semantics { contentDescription = tag }
+                        .testTag(tag),
                     selected = isSelected,
                     onClick = { if (!isSelected) onCategorySelected(category) },
                     label = { Text(category) },
