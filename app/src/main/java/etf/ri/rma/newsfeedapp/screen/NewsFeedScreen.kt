@@ -15,19 +15,28 @@ import etf.ri.rma.newsfeedapp.data.NewsData
 @Composable
 fun NewsFeedScreen() {
     val allNews = remember { NewsData.getAllNews() }
-    var selectedCategory by remember { mutableStateOf<String?>(null) }
+    var selectedCategories by remember { mutableStateOf(setOf<String>()) }
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp)
     ) {
         CategoryFilter(
-            selectedCategory = selectedCategory
-        ) { selectedCategory = it }
-        val filteredNews = allNews.filter { selectedCategory == null || it.category == selectedCategory }
+            selectedCategories = selectedCategories,
+            onSelectionChanged = { selectedCategories = it }
+        )
+
+        val filteredNews = if (selectedCategories.isEmpty()) {
+            allNews
+        } else {
+            allNews.filter { it.category in selectedCategories }
+        }
+
         if (filteredNews.isEmpty()) {
             MessageCard(
-                text = if (selectedCategory == null) "Nema dostupnih vijesti."
-                else "Nema pronađenih vijesti u kategoriji $selectedCategory."
+                text = if (selectedCategories.isEmpty()) "Nema dostupnih vijesti."
+                else "Nema pronađenih vijesti za odabrane kategorije."
             )
-        } else NewsList(newsItems = filteredNews)
+        } else {
+            NewsList(newsItems = filteredNews)
+        }
     }
 }

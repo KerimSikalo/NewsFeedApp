@@ -24,16 +24,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun CategoryFilter(selectedCategory: String?, onCategorySelected: (String?) -> Unit) {
-    val mainCategories = listOf(
-        "Sve" to "filter_chip_all",
+fun CategoryFilter(selectedCategories: Set<String>, onSelectionChanged: (Set<String>) -> Unit) {
+    val mainCategories = listOf("Politika", "Sport", "Nauka/tehnologija")
+    val allTag = "filter_chip_all"
+    val chipMap = mapOf(
+        "Sve" to allTag,
         "Politika" to "filter_chip_pol",
         "Sport" to "filter_chip_spo",
         "Nauka/tehnologija" to "filter_chip_sci"
     )
-    val extraCategories = listOf(
-        "Biznis" to "filter_chip_none"
-    )
+
+    val isAllSelected = selectedCategories.isEmpty()
+
     Column(
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(1.dp)
@@ -42,50 +44,34 @@ fun CategoryFilter(selectedCategory: String?, onCategorySelected: (String?) -> U
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            mainCategories.forEach { (category, tag) ->
-                val isSelected = selectedCategory == category || (selectedCategory == null && category == "Sve")
+            chipMap.forEach { (category, tag) ->
+                val isSelected = if (category == "Sve") isAllSelected else selectedCategories.contains(category)
                 FilterChip(
-                    modifier = Modifier.semantics { contentDescription = tag }
+                    modifier = Modifier
+                        .semantics { contentDescription = tag }
                         .testTag(tag)
                         .widthIn(
-                            max = if (category == "Nauka/tehnologija") 120.dp
-                            else Dp.Unspecified
+                            max = if (category == "Nauka/tehnologija") 120.dp else Dp.Unspecified
                         ),
                     selected = isSelected,
-                    onClick = { if (!isSelected) onCategorySelected(if (category == "Sve") null else category) },
+                    onClick = {
+                        if (category == "Sve") {
+                            onSelectionChanged(emptySet())
+                        } else {
+                            val newSet = selectedCategories.toMutableSet()
+                            if (newSet.contains(category)) newSet.remove(category)
+                            else newSet.add(category)
+                            onSelectionChanged(newSet)
+                        }
+                    },
                     label = {
                         Text(
-                        text = category,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        fontSize = if (category == "Nauka/tehnologija") 12.sp else 14.sp
+                            text = category,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            fontSize = if (category == "Nauka/tehnologija") 12.sp else 14.sp
                         )
                     },
-                    leadingIcon = if (isSelected) {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Done,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                    } else null,
-                    colors = FilterChipDefaults.filterChipColors()
-                )
-            }
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            extraCategories.forEach { (category, tag) ->
-                val isSelected = selectedCategory == category
-                FilterChip(
-                    modifier = Modifier.semantics { contentDescription = tag }
-                        .testTag(tag),
-                    selected = isSelected,
-                    onClick = { if (!isSelected) onCategorySelected(category) },
-                    label = { Text(category) },
                     leadingIcon = if (isSelected) {
                         {
                             Icon(
