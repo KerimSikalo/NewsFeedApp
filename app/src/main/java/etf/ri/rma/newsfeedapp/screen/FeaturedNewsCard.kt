@@ -22,9 +22,9 @@ import etf.ri.rma.newsfeedapp.R
 import etf.ri.rma.newsfeedapp.model.NewsItem
 
 @Composable
-fun FeaturedNewsCard(newsItem: NewsItem) {
+fun FeaturedNewsCard(newsItem: NewsItem, modifier: Modifier = Modifier) {
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(16.dp)

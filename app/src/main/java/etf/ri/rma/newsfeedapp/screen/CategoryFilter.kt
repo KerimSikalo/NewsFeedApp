@@ -25,17 +25,17 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun CategoryFilter(selectedCategories: Set<String>, onSelectionChanged: (Set<String>) -> Unit) {
-    val mainCategories = listOf("Politika", "Sport", "Nauka/tehnologija")
+    listOf("Politika", "Sport", "Nauka/tehnologija")
     val allTag = "filter_chip_all"
     val chipMap = mapOf(
         "Sve" to allTag,
         "Politika" to "filter_chip_pol",
         "Sport" to "filter_chip_spo",
-        "Nauka/tehnologija" to "filter_chip_sci"
+        "Nauka/tehnologija" to "filter_chip_sci",
+        "Biznis" to "filter_chip_none",
+        "Više filtera ..." to "filter_chip_more"
     )
-
     val isAllSelected = selectedCategories.isEmpty()
-
     Column(
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(1.dp)
@@ -50,9 +50,7 @@ fun CategoryFilter(selectedCategories: Set<String>, onSelectionChanged: (Set<Str
                     modifier = Modifier
                         .semantics { contentDescription = tag }
                         .testTag(tag)
-                        .widthIn(
-                            max = if (category == "Nauka/tehnologija") 120.dp else Dp.Unspecified
-                        ),
+                        .widthIn( max = if (category == "Nauka/tehnologija") 120.dp else Dp.Unspecified ),
                     selected = isSelected,
                     onClick = {
                         if (category == "Sve") {
