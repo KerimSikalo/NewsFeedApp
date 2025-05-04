@@ -10,6 +10,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import etf.ri.rma.newsfeedapp.model.NewsItem
 import etf.ri.rma.newsfeedapp.data.NewsData
+import java.util.Locale
 
 @Composable
 fun NewsDetailsScreen(
@@ -35,6 +36,11 @@ fun NewsDetailsScreen(
             text = "Kategorija: ${newsItem.category}",
             style = MaterialTheme.typography.labelLarge,
             modifier = Modifier.testTag("details_category")
+        )
+        Text(
+            text = newsItem.publishedDate,
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.testTag("details_date")
         )
         Text(
             text = "${newsItem.source} • ${newsItem.publishedDate}",
@@ -68,6 +74,8 @@ fun NewsDetailsScreen(
 }
 
 
+
+
 fun findRelatedNews(current: NewsItem): List<NewsItem> {
     return NewsData.getAllNews()
         .filter { it.category == current.category && it.id != current.id }
@@ -77,7 +85,7 @@ fun findRelatedNews(current: NewsItem): List<NewsItem> {
 
 
 fun dateDifference(date1: String, date2: String): Int {
-    val format = java.time.format.DateTimeFormatter.ofPattern("d-MM-yyyy")
+    val format = java.time.format.DateTimeFormatter.ofPattern("d-MM-yyyy", Locale.ENGLISH)
     val d1 = java.time.LocalDate.parse(date1, format)
     val d2 = java.time.LocalDate.parse(date2, format)
     return kotlin.math.abs(java.time.temporal.ChronoUnit.DAYS.between(d1, d2).toInt())

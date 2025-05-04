@@ -2,14 +2,12 @@ package etf.ri.rma.newsfeedapp.screen
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,7 +54,7 @@ fun FilterScreen(
     navController: NavController
 ) {
     val dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
-    var selectedCategories by remember { mutableStateOf(initialCategories.toMutableSet()) }
+    var selectedCategories by rememberSaveable { mutableStateOf(initialCategories) }
     var unwantedInput by remember { mutableStateOf("") }
     var unwantedWords by remember { mutableStateOf(mutableListOf<String>()) }
     val focusManager = LocalFocusManager.current
@@ -68,8 +67,7 @@ fun FilterScreen(
             Button(
                 onClick = {
                     try {
-                        navController.previousBackStackEntry
-                            ?.savedStateHandle
+                        navController.previousBackStackEntry?.savedStateHandle
                             ?.set("filters", Triple(selectedCategories, "${fromDate.format(dateFormatter)};${toDate.format(dateFormatter)}", unwantedWords.toList()))
                         navController.popBackStack()
                     } catch (e: Exception) {
@@ -90,7 +88,7 @@ fun FilterScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 CategoryFilter(
                     selectedCategories = selectedCategories,
-                    onSelectionChanged = { selectedCategories = it.toMutableSet() }
+                    onSelectionChanged = { selectedCategories = it }
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 Text("Period:", modifier = Modifier.testTag("filter_daterange_display"))
@@ -159,7 +157,7 @@ fun FilterScreen(
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
                         onClick = {
-                            val word = unwantedInput.trim().lowercase()
+                            val word = unwantedInput.trim()
                             if (word.isNotEmpty() && !unwantedWords.contains(word)) {
                                 unwantedWords.add(word)
                                 unwantedInput = ""
@@ -170,16 +168,20 @@ fun FilterScreen(
                         Text("Dodaj")
                     }
                 }
-                unwantedWords.forEach {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).testTag("filter_unwanted_list"),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(it)
-                        IconButton(onClick = {
-                            unwantedWords.remove(it)
-                        }) {
-                            Icon(Icons.Default.Close, contentDescription = "Ukloni riječ")
+                Column(modifier = Modifier.testTag("filter_unwanted_list")) {
+                    unwantedWords.forEach {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(it, modifier = Modifier.testTag("unwanted_word_$it"))
+                            IconButton(onClick = {
+                                unwantedWords.remove(it)
+                            }) {
+                                Icon(Icons.Default.Close, contentDescription = "Ukloni riječ")
+                            }
                         }
                     }
                 }
@@ -188,3 +190,12 @@ fun FilterScreen(
         }
     }
 }
+
+
+
+
+
+
+
+
+

@@ -1,9 +1,7 @@
 package etf.ri.rma.newsfeedapp.screen
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
@@ -19,10 +17,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import etf.ri.rma.newsfeedapp.data.NewsData
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 fun NewsFeedScreen(
@@ -30,18 +28,22 @@ fun NewsFeedScreen(
     onNewsItemClick: (String) -> Unit,
     navController: NavController
 ) {
-    val currentEntry = remember { navController.currentBackStackEntry }
+    val currentEntry = navController.currentBackStackEntryAsState().value
     val filtersState = currentEntry?.savedStateHandle?.getStateFlow("filters", null as Triple<Set<String>, String?, List<String>>?)
+    val initialCategories = currentEntry?.savedStateHandle?.get<Set<String>>("initialCategories") ?: setOf()
+    var selectedCategories by remember { mutableStateOf(initialCategories) }
+    val currentCategoriesState = remember { mutableStateOf<Set<String>>(initialCategories) }
     val allNews = remember { NewsData.getAllNews() }
-    var selectedCategories by rememberSaveable { mutableStateOf(setOf<String>()) }
     var unwantedWords by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
     var dateRange by rememberSaveable { mutableStateOf<String?>(null) }
-    LaunchedEffect(filtersState) {
+    var filtersApplied by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(currentEntry) {
         filtersState?.collect { filters ->
             filters?.let { (categories, dateRangeStr, words) ->
                 selectedCategories = categories
                 dateRange = dateRangeStr
                 unwantedWords = words
+                filtersApplied = true
             }
         }
     }
@@ -59,13 +61,18 @@ fun NewsFeedScreen(
     ) {
         CategoryFilter(
             selectedCategories = selectedCategories,
-            onSelectionChanged = { selectedCategories = it }
+            onSelectionChanged = {
+                selectedCategories = it
+                currentCategoriesState.value = it
+                navController.currentBackStackEntry?.savedStateHandle?.set("filters", Triple(selectedCategories, dateRange, unwantedWords))
+                navController.currentBackStackEntry?.savedStateHandle?.set("initialCategories", selectedCategories)
+            }
         )
         FilterChip(
-            selected = false,
+            selected = selectedCategories.isNotEmpty(),
             onClick = {
-                navController.currentBackStackEntry?.savedStateHandle?.set("initialCategories", selectedCategories)
-                onMoreFiltersClick()
+                val selected = if (selectedCategories.isEmpty()) "_" else selectedCategories.joinToString(",")
+                navController.navigate("filter/$selected")
             },
             label = { Text("Više filtera ...") },
             modifier = Modifier.testTag("filter_chip_more")
@@ -81,12 +88,27 @@ fun NewsFeedScreen(
     }
 }
 
+fun formatDateToDdMmYyyy(dateStr: String): String {
+    val inputFormatter = DateTimeFormatter.ofPattern("d-MM-yyyy")
+    val outputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+    val date = LocalDate.parse(dateStr, inputFormatter)
+    return outputFormatter.format(date)
+}
+
 
 fun isWithinDateRange(date: String, range: String): Boolean {
-    val format = DateTimeFormatter.ofPattern("d-MM-yyyy")
-    val parsedDate = LocalDate.parse(date, format)
+    val format = DateTimeFormatter.ofPattern("d-MM-yyyy", Locale.ENGLISH)
+    val parsedDate = LocalDate.parse(formatDateToDdMmYyyy(date), format)
     val (startStr, endStr) = range.split(";")
     val startDate = LocalDate.parse(startStr, format)
     val endDate = LocalDate.parse(endStr, format)
     return parsedDate in startDate..endDate
 }
+
+
+
+
+
+
+
+

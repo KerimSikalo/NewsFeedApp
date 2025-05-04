@@ -7,33 +7,31 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun CategoryFilter(selectedCategories: Set<String>, onSelectionChanged: (Set<String>) -> Unit) {
-    listOf("Politika", "Sport", "Nauka/tehnologija")
-    val allTag = "filter_chip_all"
+fun CategoryFilter(
+    selectedCategories: Set<String>,
+    onSelectionChanged: (Set<String>) -> Unit
+) {
     val chipMap = mapOf(
-        "Sve" to allTag,
+        "Sve" to "filter_chip_all",
         "Politika" to "filter_chip_pol",
         "Sport" to "filter_chip_spo",
         "Nauka/tehnologija" to "filter_chip_sci",
-        "Biznis" to "filter_chip_none",
-        "Više filtera ..." to "filter_chip_more"
+        "Biznis" to "filter_chip_none"
     )
     val isAllSelected = selectedCategories.isEmpty()
     Column(
@@ -45,22 +43,15 @@ fun CategoryFilter(selectedCategories: Set<String>, onSelectionChanged: (Set<Str
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             chipMap.forEach { (category, tag) ->
-                val isSelected = if (category == "Sve") isAllSelected else selectedCategories.contains(category)
+                val isSelected =
+                    if (category == "Sve") isAllSelected
+                    else selectedCategories.contains(category)
                 FilterChip(
-                    modifier = Modifier
-                        .semantics { contentDescription = tag }
-                        .testTag(tag)
-                        .widthIn( max = if (category == "Nauka/tehnologija") 120.dp else Dp.Unspecified ),
+                    modifier = Modifier.testTag(tag).widthIn(max = if (category == "Nauka/tehnologija") 120.dp else Dp.Unspecified),
                     selected = isSelected,
                     onClick = {
-                        if (category == "Sve") {
-                            onSelectionChanged(emptySet())
-                        } else {
-                            val newSet = selectedCategories.toMutableSet()
-                            if (newSet.contains(category)) newSet.remove(category)
-                            else newSet.add(category)
-                            onSelectionChanged(newSet)
-                        }
+                        if (category == "Sve") onSelectionChanged(emptySet())
+                        else onSelectionChanged(setOf(category))
                     },
                     label = {
                         Text(
@@ -85,3 +76,9 @@ fun CategoryFilter(selectedCategories: Set<String>, onSelectionChanged: (Set<Str
         }
     }
 }
+
+
+
+
+
+

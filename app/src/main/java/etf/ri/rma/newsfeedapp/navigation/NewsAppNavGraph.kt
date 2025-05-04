@@ -2,9 +2,11 @@ package etf.ri.rma.newsfeedapp.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import etf.ri.rma.newsfeedapp.screen.*
 import etf.ri.rma.newsfeedapp.data.NewsData
 
@@ -20,12 +22,24 @@ fun NewsAppNavGraph(
                 navController = navController
             )
         }
-        composable("filters") {
+        composable(
+            route = "filter/{selectedCategories}",
+            arguments = listOf(
+                navArgument("selectedCategories") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                }
+            )
+        ) { backStackEntry ->
+            val selectedCategoriesArg = backStackEntry.arguments?.getString("selectedCategories") ?: ""
+            val selectedCategories =
+                if (selectedCategoriesArg.isNotBlank() && selectedCategoriesArg != "_") selectedCategoriesArg.split(",").toSet()
+                else emptySet()
+
             FilterScreen(
-                initialCategories = emptySet(),
+                initialCategories = selectedCategories,
                 onApplyFilters = { categories, dateRange, unwantedWords ->
-                    navController.previousBackStackEntry?.savedStateHandle?.set("filters", Triple(categories, dateRange, unwantedWords))
-                    navController.popBackStack()
+                    backStackEntry.savedStateHandle.set("filters", Triple(categories, dateRange, unwantedWords))
                 },
                 navController = navController
             )
@@ -43,3 +57,10 @@ fun NewsAppNavGraph(
         }
     }
 }
+
+
+
+
+
+
+
