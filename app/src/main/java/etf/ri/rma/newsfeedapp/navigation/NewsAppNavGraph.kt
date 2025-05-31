@@ -7,8 +7,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import etf.ri.rma.newsfeedapp.screen.*
-import etf.ri.rma.newsfeedapp.data.NewsData
+import etf.ri.rma.newsfeedapp.data.network.RetrofitInstance
+import etf.ri.rma.newsfeedapp.screen.FilterScreen
+import etf.ri.rma.newsfeedapp.screen.NewsDetailsScreen
+import etf.ri.rma.newsfeedapp.screen.NewsFeedScreen
 
 @Composable
 fun NewsAppNavGraph(
@@ -18,7 +20,7 @@ fun NewsAppNavGraph(
         composable("home") {
             NewsFeedScreen(
                 onMoreFiltersClick = { navController.navigate("filters") },
-                onNewsItemClick = { id -> navController.navigate("details/$id") },
+                onNewsItemClick = { uuid -> navController.navigate("details/$uuid") },
                 navController = navController
             )
         }
@@ -35,7 +37,6 @@ fun NewsAppNavGraph(
             val selectedCategories =
                 if (selectedCategoriesArg.isNotBlank() && selectedCategoriesArg != "_") selectedCategoriesArg.split(",").toSet()
                 else emptySet()
-
             FilterScreen(
                 initialCategories = selectedCategories,
                 onApplyFilters = { categories, dateRange, unwantedWords ->
@@ -44,9 +45,9 @@ fun NewsAppNavGraph(
                 navController = navController
             )
         }
-        composable("details/{id}") { backStackEntry ->
-            val id = backStackEntry.arguments?.getString("id")
-            val item = NewsData.getAllNews().find { it.id == id }
+        composable("details/{uuid}") { backStackEntry ->
+            val uuid = backStackEntry.arguments?.getString("uuid")
+            val item = RetrofitInstance.defaultNewsDAO.getAllStories().find { it.uuid == uuid }
             if (item != null) {
                 NewsDetailsScreen(
                     newsItem = item,

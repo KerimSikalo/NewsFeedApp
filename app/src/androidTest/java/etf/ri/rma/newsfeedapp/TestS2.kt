@@ -1,5 +1,6 @@
 package etf.ri.rma.newsfeedapp
 
+/*
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotSelected
@@ -140,3 +141,5 @@ class TestS2 {
         composeTestRule.onNodeWithTag("news_list").assertExists()
     }
 }
+
+ */

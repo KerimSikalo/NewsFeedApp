@@ -1,5 +1,7 @@
 package etf.ri.rma.newsfeedapp.data
 
+/*
+
 import etf.ri.rma.newsfeedapp.model.NewsItem
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -29,3 +31,4 @@ object NewsData {
         }
     }
 }
+*/

@@ -17,7 +17,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import etf.ri.rma.newsfeedapp.data.NewsData
+import etf.ri.rma.newsfeedapp.data.network.RetrofitInstance
+import etf.ri.rma.newsfeedapp.model.NewsItem
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -28,12 +29,24 @@ fun NewsFeedScreen(
     onNewsItemClick: (String) -> Unit,
     navController: NavController
 ) {
+    val categoryMap = mapOf(
+        "Politika" to "politics",
+        "Sport" to "sports",
+        "Nauka/tehnologija" to "science",
+        "Biznis" to "business"
+    )
     val currentEntry = navController.currentBackStackEntryAsState().value
     val filtersState = currentEntry?.savedStateHandle?.getStateFlow("filters", null as Triple<Set<String>, String?, List<String>>?)
     val initialCategories = currentEntry?.savedStateHandle?.get<Set<String>>("initialCategories") ?: setOf()
     var selectedCategories by remember { mutableStateOf(initialCategories) }
     val currentCategoriesState = remember { mutableStateOf<Set<String>>(initialCategories) }
-    val allNews = remember { NewsData.getAllNews() }
+    var allNews by remember { mutableStateOf(emptyList<NewsItem>()) }
+    LaunchedEffect(Unit) {
+        try {
+            RetrofitInstance.defaultNewsDAO.loadInitialNews()
+            allNews = RetrofitInstance.defaultNewsDAO.getAllStories()
+        } catch (_: Exception) {}
+    }
     var unwantedWords by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
     var dateRange by rememberSaveable { mutableStateOf<String?>(null) }
     var filtersApplied by rememberSaveable { mutableStateOf(false) }
@@ -47,9 +60,30 @@ fun NewsFeedScreen(
             }
         }
     }
+    LaunchedEffect(selectedCategories) {
+        if (selectedCategories.isEmpty()) {
+            val categories = categoryMap.values
+            categories.forEach { category ->
+                try {
+                    RetrofitInstance.defaultNewsDAO.getTopStoriesByCategory(category)
+                } catch (_: Exception) {}
+            }
+            allNews = RetrofitInstance.defaultNewsDAO.getAllStories()
+        } else if (selectedCategories.size == 1) {
+            val displayCategory = selectedCategories.first()
+            val apiCategory = categoryMap[displayCategory]
+            if (apiCategory != null) {
+                try {
+                    RetrofitInstance.defaultNewsDAO.getTopStoriesByCategory(apiCategory)
+                } catch (_: Exception) {}
+                allNews = RetrofitInstance.defaultNewsDAO.getAllStories()
+            }
+        }
+    }
     val filteredNews = remember(allNews, selectedCategories, dateRange, unwantedWords) {
+        val mappedSelected = selectedCategories.mapNotNull { categoryMap[it] }.toSet()
         allNews.filter { news ->
-            (selectedCategories.isEmpty() || news.category in selectedCategories) &&
+            (mappedSelected.isEmpty() || news.category in mappedSelected) &&
                     (dateRange == null || isWithinDateRange(news.publishedDate, dateRange!!)) &&
                     (unwantedWords.isEmpty() || unwantedWords.none { word ->
                         news.title.contains(word, ignoreCase = true) || news.snippet.contains(word, ignoreCase = true)
@@ -83,7 +117,7 @@ fun NewsFeedScreen(
                 else "Nema pronađenih vijesti za odabrane kategorije."
             )
         } else {
-            NewsList(newsItems = filteredNews, onItemClick = { onNewsItemClick(it.id) })
+            NewsList(newsItems = filteredNews, onItemClick = { onNewsItemClick(it.uuid) })
         }
     }
 }
@@ -94,7 +128,6 @@ fun formatDateToDdMmYyyy(dateStr: String): String {
     val date = LocalDate.parse(dateStr, inputFormatter)
     return outputFormatter.format(date)
 }
-
 
 fun isWithinDateRange(date: String, range: String): Boolean {
     val format = DateTimeFormatter.ofPattern("d-MM-yyyy", Locale.ENGLISH)

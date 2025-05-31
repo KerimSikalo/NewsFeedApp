@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
 import etf.ri.rma.newsfeedapp.R
 import etf.ri.rma.newsfeedapp.model.NewsItem
 
@@ -30,9 +31,12 @@ fun FeaturedNewsCard(newsItem: NewsItem, modifier: Modifier = Modifier) {
             modifier = Modifier.fillMaxWidth().padding(16.dp)
         ) {
             Image(
-                painter = painterResource(id = R.drawable.news),
-                contentDescription = "image",
-                modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(8.dp)),
+                painter = rememberAsyncImagePainter(model = newsItem.imageUrl),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+                    .clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop
             )
             Spacer(

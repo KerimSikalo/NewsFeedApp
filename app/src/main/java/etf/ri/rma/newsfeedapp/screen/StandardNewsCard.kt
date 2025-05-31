@@ -16,10 +16,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import etf.ri.rma.newsfeedapp.R
+import coil.compose.rememberAsyncImagePainter
 import etf.ri.rma.newsfeedapp.model.NewsItem
 
 @Composable
@@ -29,7 +28,7 @@ fun StandardNewsCard(newsItem: NewsItem, modifier: Modifier = Modifier) {
     ) {
         Row(modifier = Modifier.padding(16.dp)) {
             Image(
-                painter = painterResource(id = R.drawable.news),
+                painter = rememberAsyncImagePainter(model = newsItem.imageUrl),
                 contentDescription = "image",
                 modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop
