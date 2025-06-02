@@ -15,6 +15,7 @@ class NewsDAO {
     private var apiService = RetrofitInstance.newsApiService
     private val cache = mutableListOf<NewsItem>()
     private val lastFetchTimestamps = mutableMapOf<String, Long>()
+    private var lastGlobalFetch: Long = 0L
     private val mutex = Mutex()
     private val similarStoriesCache = mutableMapOf<String, List<NewsItem>>()
     private val formatterInput = DateTimeFormatter.ISO_INSTANT
@@ -25,8 +26,8 @@ class NewsDAO {
     suspend fun getTopStoriesByCategory(category: String): List<NewsItem> = mutex.withLock {
         val now = System.currentTimeMillis()
         val lastFetch = lastFetchTimestamps[category] ?: 0L
-        val diffSeconds = (now - lastFetch) / 1000
-        if (diffSeconds < 30) { return cache.filter { it.category == category } }
+        val globalDiffSeconds = (now - lastGlobalFetch) / 1000
+        if (globalDiffSeconds < 30) { return cache.filter { it.category == category }.sortedByDescending { it.isFeatured } }
         val response = apiService.getTopNewsByCategory(category)
         val newItems = response.data.take(3).map { dto ->
             NewsItem(
@@ -37,13 +38,13 @@ class NewsDAO {
                 category = dto.categories.firstOrNull() ?: category,
                 isFeatured = true,
                 source = dto.source,
-                publishedDate = formatterOutput.format(Instant.parse(dto.published_at).atZone(ZoneId.systemDefault())
+                publishedDate = formatterOutput.format(
+                    Instant.parse(dto.published_at).atZone(ZoneId.systemDefault())
                 )
             )
         }
+        cache.forEach { it.isFeatured = false }
         val featuredNews = mutableListOf<NewsItem>()
-        val existingCategoryNews = cache.filter { it.category == category }
-        existingCategoryNews.forEach { it.isFeatured = false }
         for (item in newItems) {
             val existing = cache.find { it.uuid == item.uuid }
             if (existing != null) {
@@ -54,9 +55,9 @@ class NewsDAO {
                 featuredNews.add(item)
             }
         }
-        val result = featuredNews + cache.filter { it.category == category && it.uuid !in featuredNews.map { it.uuid } }
         lastFetchTimestamps[category] = now
-        return result
+        lastGlobalFetch = now
+        return cache.filter { it.category == category }.sortedByDescending { it.isFeatured }
     }
 
     fun getAllStories(): List<NewsItem> = cache.toList()

@@ -20,7 +20,7 @@ class ImagaDAO {
         if (!imageURL.startsWith("http")) throw InvalidImageURLException()
         cache[imageURL]?.let { return it }
 
-        val credentials = "acc_6d818ca04cc0739:bb9679005626d518172954aecb94bbeb"
+        val credentials = "acc_e5b9d98e85addbd:e838185015c38d77af1ff2cd5309fabb"
         val basicAuth = "Basic " + Base64.encodeToString(credentials.toByteArray(), Base64.NO_WRAP)
         val response = apiService.getTags(imageURL, basicAuth)
         val tags = response.result.tags.mapNotNull { it.tag["en"] }

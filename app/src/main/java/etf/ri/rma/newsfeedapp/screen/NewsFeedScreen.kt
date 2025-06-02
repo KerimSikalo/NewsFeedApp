@@ -41,15 +41,15 @@ fun NewsFeedScreen(
     var selectedCategories by remember { mutableStateOf(initialCategories) }
     val currentCategoriesState = remember { mutableStateOf<Set<String>>(initialCategories) }
     var allNews by remember { mutableStateOf(emptyList<NewsItem>()) }
+    var unwantedWords by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
+    var dateRange by rememberSaveable { mutableStateOf<String?>(null) }
+    var filtersApplied by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         try {
             RetrofitInstance.defaultNewsDAO.loadInitialNews()
             allNews = RetrofitInstance.defaultNewsDAO.getAllStories()
         } catch (_: Exception) {}
     }
-    var unwantedWords by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
-    var dateRange by rememberSaveable { mutableStateOf<String?>(null) }
-    var filtersApplied by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(currentEntry) {
         filtersState?.collect { filters ->
             filters?.let { (categories, dateRangeStr, words) ->
@@ -61,23 +61,27 @@ fun NewsFeedScreen(
         }
     }
     LaunchedEffect(selectedCategories) {
+        val dao = RetrofitInstance.defaultNewsDAO
+        val hardcodedNews = dao.getAllStories()
         if (selectedCategories.isEmpty()) {
-            val categories = categoryMap.values
-            categories.forEach { category ->
-                try {
-                    RetrofitInstance.defaultNewsDAO.getTopStoriesByCategory(category)
-                } catch (_: Exception) {}
-            }
-            allNews = RetrofitInstance.defaultNewsDAO.getAllStories()
-        } else if (selectedCategories.size == 1) {
+            try {
+                dao.getTopStoriesByCategory("general")
+            } catch (_: Exception) {}
+            allNews = dao.getAllStories().sortedByDescending { it.isFeatured }
+        }
+        else if (selectedCategories.size == 1) {
             val displayCategory = selectedCategories.first()
             val apiCategory = categoryMap[displayCategory]
             if (apiCategory != null) {
                 try {
-                    RetrofitInstance.defaultNewsDAO.getTopStoriesByCategory(apiCategory)
+                    dao.getTopStoriesByCategory(apiCategory)
                 } catch (_: Exception) {}
-                allNews = RetrofitInstance.defaultNewsDAO.getAllStories()
+                allNews = dao.getAllStories().filter { it.category == apiCategory }.sortedByDescending { it.isFeatured }
+            } else {
+                allNews = hardcodedNews
             }
+        } else {
+            allNews = hardcodedNews
         }
     }
     val filteredNews = remember(allNews, selectedCategories, dateRange, unwantedWords) {
