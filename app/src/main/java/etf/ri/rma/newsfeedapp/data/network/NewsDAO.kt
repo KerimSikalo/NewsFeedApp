@@ -26,8 +26,9 @@ class NewsDAO {
     suspend fun getTopStoriesByCategory(category: String): List<NewsItem> = mutex.withLock {
         val now = System.currentTimeMillis()
         val lastFetch = lastFetchTimestamps[category] ?: 0L
-        val globalDiffSeconds = (now - lastGlobalFetch) / 1000
-        if (globalDiffSeconds < 30) { return cache.filter { it.category == category }.sortedByDescending { it.isFeatured } }
+        val diffSeconds = (now - lastFetch) / 1000
+        val cachedNews = cache.filter { it.category == category }.sortedByDescending { it.isFeatured }
+        if (cachedNews.isNotEmpty() && diffSeconds < 30) { return cachedNews }
         val response = apiService.getTopNewsByCategory(category)
         val newItems = response.data.take(3).map { dto ->
             NewsItem(
