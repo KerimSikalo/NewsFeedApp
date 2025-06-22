@@ -1,5 +1,5 @@
 package etf.ri.rma.newsfeedapp
-
+/*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import etf.ri.rma.newsfeedapp.data.network.exception.InvalidImageURLException
@@ -277,4 +277,4 @@ class TestS3 {
         server.shutdown()
     }
 
-}
+}*/

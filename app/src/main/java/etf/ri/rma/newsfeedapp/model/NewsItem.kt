@@ -1,5 +1,7 @@
 package etf.ri.rma.newsfeedapp.model
 
+import etf.ri.rma.newsfeedapp.model.TagWrapper
+
 data class NewsItem(
     val uuid: String,
     val title: String,
@@ -9,7 +11,7 @@ data class NewsItem(
     var isFeatured: Boolean,
     val source: String,
     val publishedDate: String,
-    val imageTags: ArrayList<String> = arrayListOf()
+    val imageTags: ArrayList<TagWrapper> = arrayListOf()
 ) {
     val uniqueId: String get() = "$uuid-$category"
 }

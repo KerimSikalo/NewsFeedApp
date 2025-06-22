@@ -27,10 +27,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import etf.ri.rma.newsfeedapp.data.NewsDatabase
+import etf.ri.rma.newsfeedapp.data.toNewsItem
 import etf.ri.rma.newsfeedapp.data.network.RetrofitInstance
+import etf.ri.rma.newsfeedapp.data.network.isConnected
 import etf.ri.rma.newsfeedapp.model.NewsItem
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -42,24 +46,15 @@ fun NewsDetailsScreen(
 ) {
     var tags by remember { mutableStateOf<List<String>>(emptyList()) }
     var relatedNews by remember { mutableStateOf<List<NewsItem>>(emptyList()) }
-    LaunchedEffect(newsItem.imageUrl) {
-        newsItem.imageUrl?.let {
-            try {
-                tags = RetrofitInstance.defaultImagaDAO.getTags(it)
-            } catch (_: Exception) {}
-        }
-    }
-    LaunchedEffect(newsItem) {
-        try {
-            relatedNews = RetrofitInstance.defaultNewsDAO.getSimilarStories(newsItem.uuid)
-        } catch (_: Exception) {
-            relatedNews = emptyList()
-        }
-    }
+
+    NewsDetailsScreenLogic(
+        newsItem = newsItem,
+        onTagsLoaded = { tags = it },
+        onRelatedNewsLoaded = { relatedNews = it }
+    )
+
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
+        modifier = Modifier.fillMaxSize().padding(16.dp)
     ) {
         item {
             newsItem.imageUrl?.let {
@@ -77,14 +72,12 @@ fun NewsDetailsScreen(
                 modifier = Modifier.testTag("details_title")
             )
             Spacer(modifier = Modifier.height(8.dp))
-
             Text(
                 text = newsItem.snippet,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.testTag("details_snippet")
             )
             Spacer(modifier = Modifier.height(8.dp))
-
             Text(
                 text = "Kategorija: ${newsItem.category}",
                 style = MaterialTheme.typography.labelLarge,
@@ -97,7 +90,6 @@ fun NewsDetailsScreen(
             )
             Spacer(modifier = Modifier.height(12.dp))
         }
-
         if (tags.isNotEmpty()) {
             item {
                 Text("Tagovi slike:", style = MaterialTheme.typography.titleSmall)
@@ -130,16 +122,11 @@ fun NewsDetailsScreen(
                 Text(
                     text = related.title,
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onRelatedNewsClick(related.uuid) }
-                        .padding(vertical = 4.dp)
-                        .testTag("related_news_title_${related.uuid.take(4)}")
+                    modifier = Modifier.fillMaxWidth().clickable { onRelatedNewsClick(related.uuid) }
+                        .padding(vertical = 4.dp).testTag("related_news_title_${related.uuid.take(4)}")
                 )
             }
-
         }
-
         item {
             Spacer(modifier = Modifier.height(24.dp))
             Button(
@@ -150,7 +137,40 @@ fun NewsDetailsScreen(
             }
         }
     }
-    BackHandler {
-        onClose()
+    BackHandler { onClose() }
+}
+
+@Composable
+fun NewsDetailsScreenLogic(
+    newsItem: NewsItem,
+    onTagsLoaded: (List<String>) -> Unit,
+    onRelatedNewsLoaded: (List<NewsItem>) -> Unit
+) {
+    val context = LocalContext.current
+    LaunchedEffect(newsItem) {
+        val savedDao = NewsDatabase.getDatabase(context).savedNewsDAO()
+        val id = savedDao.getNewsIdByUuid(newsItem.uuid)
+        if (id != null) {
+            val localTags = savedDao.getTags(id)
+            if (localTags.isNotEmpty()) {
+                onTagsLoaded(localTags)
+            } else if (!newsItem.imageUrl.isNullOrBlank()) {
+                try {
+                    val fetchedTags = RetrofitInstance.defaultImagaDAO.getTags(newsItem.imageUrl)
+                    onTagsLoaded(fetchedTags)
+                    savedDao.addTags(fetchedTags, id)
+                } catch (_: Exception) {}
+            }
+        }
+        if (!isConnected(context)) {
+            if (id != null) {
+                val offlineTags = savedDao.getTags(id)
+                onRelatedNewsLoaded(savedDao.getSimilarNews(offlineTags.take(2)))
+            }
+        } else {
+            try {
+                onRelatedNewsLoaded(RetrofitInstance.defaultNewsDAO.getSimilarStories(newsItem.uuid))
+            } catch (_: Exception) {}
+        }
     }
 }

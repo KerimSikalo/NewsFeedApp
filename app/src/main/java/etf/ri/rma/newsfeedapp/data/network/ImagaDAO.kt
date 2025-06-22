@@ -19,8 +19,7 @@ class ImagaDAO {
     suspend fun getTags(imageURL: String): List<String> = mutex.withLock {
         if (!imageURL.startsWith("http")) throw InvalidImageURLException()
         cache[imageURL]?.let { return it }
-
-        val credentials = "acc_e5b9d98e85addbd:e838185015c38d77af1ff2cd5309fabb"
+        val credentials = "acc_4cdd93498be4371:27d5af23ade72b3532a09bd5edae6cc3"
         val basicAuth = "Basic " + Base64.encodeToString(credentials.toByteArray(), Base64.NO_WRAP)
         val response = apiService.getTags(imageURL, basicAuth)
         val tags = response.result.tags.mapNotNull { it.tag["en"] }

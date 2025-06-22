@@ -9,20 +9,20 @@ interface NewsApiService {
     @GET("news/top")
     suspend fun getTopNewsByCategory(
         @Query("categories") category: String,
-        @Query("api_token") apiKey: String = "K4WG2faoRMhvESCd4oViM3FeiFKqz7Cwl7PPbf2R",
+        @Query("api_token") apiKey: String = "w0objgKAQiAjPAW7yl8ZSRrF3nKd9w83BvNpVnjx",
         @Query("locale") locale: String = "us",
         @Query("limit") limit: Int = 3
     ): NewsResponse
     @GET("news/all")
     suspend fun getAllNewsByCategory(
         @Query("category") category: String,
-        @Query("api_token") apiKey: String = "K4WG2faoRMhvESCd4oViM3FeiFKqz7Cwl7PPbf2R",
+        @Query("api_token") apiKey: String = "w0objgKAQiAjPAW7yl8ZSRrF3nKd9w83BvNpVnjx",
         @Query("language") language: String = "en",
         @Query("limit") limit: Int = 1
     ): NewsResponse
     @GET("news/similar/{uuid}")
     suspend fun getSimilarStories(
         @Path("uuid") uuid: String,
-        @Query("api_token") apiKey: String = "K4WG2faoRMhvESCd4oViM3FeiFKqz7Cwl7PPbf2R"
+        @Query("api_token") apiKey: String = "w0objgKAQiAjPAW7yl8ZSRrF3nKd9w83BvNpVnjx"
     ): NewsResponse
 }

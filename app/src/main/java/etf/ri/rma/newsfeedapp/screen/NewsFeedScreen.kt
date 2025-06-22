@@ -1,5 +1,6 @@
 package etf.ri.rma.newsfeedapp.screen
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -13,10 +14,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import etf.ri.rma.newsfeedapp.data.NewsDatabase
+import etf.ri.rma.newsfeedapp.data.network.isConnected
 import etf.ri.rma.newsfeedapp.data.network.RetrofitInstance
 import etf.ri.rma.newsfeedapp.model.NewsItem
 import java.time.LocalDate
@@ -29,24 +33,29 @@ fun NewsFeedScreen(
     onNewsItemClick: (String) -> Unit,
     navController: NavController
 ) {
+    val context = LocalContext.current
     val categoryMap = mapOf(
         "Politika" to "politics",
         "Sport" to "sports",
         "Nauka/tehnologija" to "science",
-        "Biznis" to "business"
+        "Biznis" to "business",
+        "Zdravlje" to "health",
+        "Hrana" to "food",
+        "Putovanja" to "travel",
+        "Zabava" to "entertainment"
     )
     val currentEntry = navController.currentBackStackEntryAsState().value
     val filtersState = currentEntry?.savedStateHandle?.getStateFlow("filters", null as Triple<Set<String>, String?, List<String>>?)
     val initialCategories = currentEntry?.savedStateHandle?.get<Set<String>>("initialCategories") ?: setOf()
     var selectedCategories by remember { mutableStateOf(initialCategories) }
-    val currentCategoriesState = remember { mutableStateOf<Set<String>>(initialCategories) }
     var allNews by remember { mutableStateOf(emptyList<NewsItem>()) }
     var unwantedWords by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
     var dateRange by rememberSaveable { mutableStateOf<String?>(null) }
     var filtersApplied by rememberSaveable { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         try {
-            RetrofitInstance.defaultNewsDAO.loadInitialNews()
+            RetrofitInstance.defaultNewsDAO.loadInitialNews(context)
             allNews = RetrofitInstance.defaultNewsDAO.getAllStories()
         } catch (_: Exception) {}
     }
@@ -62,37 +71,55 @@ fun NewsFeedScreen(
     }
     LaunchedEffect(selectedCategories) {
         val dao = RetrofitInstance.defaultNewsDAO
-        val hardcodedNews = dao.getAllStories()
-        if (selectedCategories.isEmpty()) {
-            try {
-                dao.getTopStoriesByCategory("general")
-            } catch (_: Exception) {}
-            allNews = dao.getAllStories().sortedByDescending { it.isFeatured }
-        }
-        else if (selectedCategories.size == 1) {
-            val displayCategory = selectedCategories.first()
-            val apiCategory = categoryMap[displayCategory]
-            if (apiCategory != null) {
-                try {
-                    dao.getTopStoriesByCategory(apiCategory)
-                } catch (_: Exception) {}
-                allNews = dao.getAllStories().filter { it.category == apiCategory }.sortedByDescending { it.isFeatured }
+        val savedDao = NewsDatabase.getDatabase(context).savedNewsDAO()
+        if (!isConnected(context)) {
+            allNews = if (selectedCategories.isEmpty()) {
+                savedDao.allNews().sortedByDescending { it.isFeatured }
             } else {
-                allNews = hardcodedNews
+                selectedCategories.flatMap { displayCategory ->
+                    val apiCategory = categoryMap[displayCategory]
+                    return@flatMap if (apiCategory != null) {
+                        try {
+                            savedDao.getNewsWithCategory(apiCategory)
+                        } catch (e: Exception) {
+                            Log.e("OfflineLoad", "Greska: ${e.message}")
+                            emptyList()
+                        }
+                    } else emptyList()
+                }.sortedByDescending { it.isFeatured }
             }
         } else {
-            allNews = hardcodedNews
+            if (selectedCategories.isEmpty()) {
+                try {
+                    dao.getTopStoriesByCategory("general", context, RetrofitInstance.defaultImagaDAO)
+                } catch (_: Exception) {}
+                allNews = dao.getAllStories().sortedByDescending { it.isFeatured }
+            } else if (selectedCategories.size == 1) {
+                val displayCategory = selectedCategories.first()
+                val apiCategory = categoryMap[displayCategory]
+                if (apiCategory != null) {
+                    try {
+                        dao.getTopStoriesByCategory(apiCategory, context, RetrofitInstance.defaultImagaDAO)
+                    } catch (_: Exception) {}
+                    allNews = dao.getAllStories().filter { it.category == apiCategory }.sortedByDescending { it.isFeatured }
+                } else {
+                    allNews = emptyList()
+                }
+            } else {
+                allNews = dao.getAllStories()
+            }
         }
     }
     val filteredNews = remember(allNews, selectedCategories, dateRange, unwantedWords) {
         val mappedSelected = selectedCategories.mapNotNull { categoryMap[it] }.toSet()
-        allNews.filter { news ->
-            (mappedSelected.isEmpty() || news.category in mappedSelected) &&
-                    (dateRange == null || isWithinDateRange(news.publishedDate, dateRange!!)) &&
-                    (unwantedWords.isEmpty() || unwantedWords.none { word ->
-                        news.title.contains(word, ignoreCase = true) || news.snippet.contains(word, ignoreCase = true)
-                    })
-        }
+        allNews
+            .distinctBy { it.uuid }.filter { news ->
+                (mappedSelected.isEmpty() || news.category in mappedSelected) &&
+                        (dateRange == null || isWithinDateRange(news.publishedDate, dateRange!!)) &&
+                        (unwantedWords.isEmpty() || unwantedWords.none { word ->
+                            news.title.contains(word, ignoreCase = true) || news.snippet.contains(word, ignoreCase = true)
+                        })
+            }
     }
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp)
@@ -101,7 +128,6 @@ fun NewsFeedScreen(
             selectedCategories = selectedCategories,
             onSelectionChanged = {
                 selectedCategories = it
-                currentCategoriesState.value = it
                 navController.currentBackStackEntry?.savedStateHandle?.set("filters", Triple(selectedCategories, dateRange, unwantedWords))
                 navController.currentBackStackEntry?.savedStateHandle?.set("initialCategories", selectedCategories)
             }
@@ -141,11 +167,3 @@ fun isWithinDateRange(date: String, range: String): Boolean {
     val endDate = LocalDate.parse(endStr, format)
     return parsedDate in startDate..endDate
 }
-
-
-
-
-
-
-
-

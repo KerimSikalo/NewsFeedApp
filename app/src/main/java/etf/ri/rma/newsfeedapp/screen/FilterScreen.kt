@@ -171,9 +171,7 @@ fun FilterScreen(
                 Column(modifier = Modifier.testTag("filter_unwanted_list")) {
                     unwantedWords.forEach {
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(it, modifier = Modifier.testTag("unwanted_word_$it"))

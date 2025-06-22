@@ -33,10 +33,7 @@ fun FeaturedNewsCard(newsItem: NewsItem, modifier: Modifier = Modifier) {
             Image(
                 painter = rememberAsyncImagePainter(model = newsItem.imageUrl),
                 contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(8.dp)),
+                modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop
             )
             Spacer(

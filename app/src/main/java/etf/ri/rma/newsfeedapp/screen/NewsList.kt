@@ -18,16 +18,10 @@ fun NewsList(newsItems: List<NewsItem>, onItemClick: (NewsItem) -> Unit) {
     LazyColumn(
         modifier = Modifier.testTag("news_list").padding(8.dp)
     ) {
-        itemsIndexed(newsItems, key = { index, item -> item.uniqueId }) { _, item ->
-        val cardModifier = Modifier
-                .fillMaxWidth()
-                .clickable { onItemClick(item) }
-
-            if (item.isFeatured)
-                FeaturedNewsCard(newsItem = item, modifier = cardModifier)
-            else
-                StandardNewsCard(newsItem = item, modifier = cardModifier)
-
+        itemsIndexed(newsItems, key = { index, item -> "${item.uuid}-${item.publishedDate}-$index" }) { _, item ->
+            val cardModifier = Modifier.fillMaxWidth().clickable { onItemClick(item) }
+            if (item.isFeatured) FeaturedNewsCard(newsItem = item, modifier = cardModifier)
+            else StandardNewsCard(newsItem = item, modifier = cardModifier)
             Spacer(modifier = Modifier.height(8.dp))
         }
     }
